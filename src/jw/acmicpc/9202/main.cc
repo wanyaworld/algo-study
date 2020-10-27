@@ -17,11 +17,41 @@ char boggle[BOGGLE_W][BOGGLE_W];
 
 class BoggleProcessor {
   public:
+    class Key {
+      public:
+        Key(int p1, int p2, string p3) : y(p1), x(p2), word(p3) {};
+        int y;
+        int x;
+        string word;
+    };
+    struct KeyCompare {
+      bool operator() (const Key &lhs, const Key &rhs) const {
+        if (lhs.word < rhs.word) return true;
+        if (lhs.word > rhs.word) return false;
+        else {
+          if (lhs.y < rhs.y) return true;
+          if (lhs.y > rhs.y) return false;
+          else {
+            if (lhs.x < rhs.x) return true;
+            return false;
+          }
+        }
+      }
+    };
     BoggleProcessor() : len(0), point(0) {}
     ~BoggleProcessor() {}
     unsigned int len, point;
     string longest_word;
     map<string, bool> cur_vocab;
+    map<Key, bool, KeyCompare> memo;
+    void do_cache(int y, int x, string word) {
+      Key key(y, x, word);
+      memo[key] = true;
+    }
+    bool is_cached(const Key& key) {
+      if (memo.find(key) == memo.end()) return false;
+      return true;
+    }
 };
 
 void init() {
@@ -41,22 +71,24 @@ void get_input() {
   cin >> n_boggles;
 }
 
-bool dfs(int y, int x, string w_in) { 
+bool dfs(BoggleProcessor &bp, int y, int x, string w_in) { 
+  BoggleProcessor::Key key(y, x, w_in);
+  if (bp.is_cached(key)) { return true; }
   if (y < 0 || x < 0 || x >= BOGGLE_W || y >= BOGGLE_W) return false;
-  if (w_in.size() == 0) return true;
+  if (w_in.size() == 0) { bp.do_cache(y, x, w_in); return true; }
   if (boggle[y][x] != w_in[0]) return false;
   
   bool ret;
   string w = w_in.erase(0, 1);
   
-  ret = dfs(y - 1, x - 1, w); if (ret) return true;
-  ret = dfs(y - 1, x, w); if (ret) return true;
-  ret = dfs(y - 1, x + 1, w); if (ret) return true;
-  ret = dfs(y, x - 1, w); if (ret) return true;
-  ret = dfs(y, x + 1, w); if (ret) return true;
-  ret = dfs(y + 1, x - 1, w); if (ret) return true;
-  ret = dfs(y + 1, x, w); if (ret) return true;
-  ret = dfs(y + 1, x + 1, w); if (ret) return true;
+  ret = dfs(bp, y - 1, x - 1, w); if (ret) return true;
+  ret = dfs(bp, y - 1, x, w); if (ret) return true;
+  ret = dfs(bp, y - 1, x + 1, w); if (ret) return true;
+  ret = dfs(bp, y, x - 1, w); if (ret) return true;
+  ret = dfs(bp, y, x + 1, w); if (ret) return true;
+  ret = dfs(bp, y + 1, x - 1, w); if (ret) return true;
+  ret = dfs(bp, y + 1, x, w); if (ret) return true;
+  ret = dfs(bp, y + 1, x + 1, w); if (ret) return true;
   
   return false;
 }
@@ -74,7 +106,7 @@ void process_boggle() {
   for (auto w = vocab.begin() ; w != vocab.end() ; w++) {
     for (int i = 0 ; i < BOGGLE_W ; i++) {
       for (int j = 0 ;j < BOGGLE_W ; j++) {
-        bool ret = dfs(i, j, w->first);
+        bool ret = dfs(bp, i, j, w->first);
         if (ret && bp.cur_vocab.find(w->first) == bp.cur_vocab.end()) {
           bp.point += word_to_point[w->first.size()];
           bp.len++;
