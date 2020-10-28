@@ -17,6 +17,7 @@ static const unsigned int word_to_point[MAX_LEN + 1] = {0, 0, 0, 1, 1, 2, 3, 5, 
 
 unsigned int n_words{}, n_boggles{};
 unordered_map<string, bool> vocab;
+unordered_map<string, bool> partial_vocab[MAX_LEN];
 
 char boggle[BOGGLE_W][BOGGLE_W];
 
@@ -46,7 +47,8 @@ void init() {
 
 string random_word() {
   string ret= "";
-  for (int i = 0 ; i < 5 ; i++)
+  int len = rand() % MAX_LEN + 1;
+  for (int i = 0 ; i < len ; i++)
     ret += rand()%('Z' - 'A') + 'A';
 
   return ret;
@@ -60,13 +62,25 @@ void get_input() {
     string w;
     cin >> w;
     vocab[w] = true;
+    for (int j = 0 ; j < w.size() ; j++) {
+      (partial_vocab[j])[w.substr(0, j + 1)] = true;
+    }
   }
   getline(cin, buf);
   cin >> n_boggles;
 
+/* For testing */
 #if 0
+  srand(time(NULL));
   for (int i = n_words ; i < MAX_WORDS ; i++) {
-    vocab[random_word()] = true;
+    string w = random_word();
+    /* My own word loooooool */
+    if (i == 100) 
+      w = (string)"ACMAAITS";
+    vocab[w] = true;
+    for (int j = 0 ; j < w.size() ; j++) {
+      (partial_vocab[j])[w.substr(0, j + 1)] = true;
+    }
   }
   n_words = MAX_WORDS;
 #endif
@@ -78,7 +92,10 @@ int x_disp[] = {-1, 0, 1};
 void dfs(BoggleProcessor &bp, map<tuple<int, int>, bool> prv, int y, int x, string w) { 
   if (y < 0 || x < 0 || x >= BOGGLE_W || y >= BOGGLE_W) return;
   if (prv.size() >= MAX_LEN) return;
+  if (vocab.size() == bp.cur_vocab.size()) return;
   w += boggle[y][x];
+  if (partial_vocab[w.size() - 1].find(w) == partial_vocab[w.size() - 1].end()) 
+    return;
   prv[tuple<int, int>(y, x)] = true;
   if (vocab.find(w) != vocab.end()) {
     bp.add_word(w); 
