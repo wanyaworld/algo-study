@@ -77,6 +77,7 @@ int x_disp[] = {-1, 0, 1};
 
 void dfs(BoggleProcessor &bp, map<tuple<int, int>, bool> prv, int y, int x, string w) { 
   if (y < 0 || x < 0 || x >= BOGGLE_W || y >= BOGGLE_W) return;
+  if (prv.size() >= MAX_LEN) return;
   w += boggle[y][x];
   prv[tuple<int, int>(y, x)] = true;
   if (vocab.find(w) != vocab.end()) {
