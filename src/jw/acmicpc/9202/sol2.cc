@@ -9,7 +9,6 @@
 
 using namespace std;
 
-enum cache_state {NOT_CACHED, CACHED, CACHED_FALSE};
 constexpr unsigned int MAX_WORDS = 300000;
 constexpr unsigned int MAX_LEN = 8;
 constexpr unsigned int BOGGLE_W = 4;
@@ -54,6 +53,12 @@ string random_word() {
   return ret;
 }
 
+void add_to_vocab(const string& w) {
+  vocab[w] = true;
+  for (int j = 0 ; j < w.size() ; j++) {
+    (partial_vocab[j])[w.substr(0, j + 1)] = true;
+  }
+}
 void get_input() {
   string buf;
   cin >> n_words;
@@ -61,15 +66,12 @@ void get_input() {
   for (int i = 0 ; i < n_words ; i++) {
     string w;
     cin >> w;
-    vocab[w] = true;
-    for (int j = 0 ; j < w.size() ; j++) {
-      (partial_vocab[j])[w.substr(0, j + 1)] = true;
-    }
+    add_to_vocab(w);
   }
   getline(cin, buf);
   cin >> n_boggles;
 
-/* For testing */
+  /* For testing */
 #if 0
   srand(time(NULL));
   for (int i = n_words ; i < MAX_WORDS ; i++) {
@@ -77,10 +79,7 @@ void get_input() {
     /* My own word loooooool */
     if (i == 100) 
       w = (string)"ACMAAITS";
-    vocab[w] = true;
-    for (int j = 0 ; j < w.size() ; j++) {
-      (partial_vocab[j])[w.substr(0, j + 1)] = true;
-    }
+    add_to_vocab(w);
   }
   n_words = MAX_WORDS;
 #endif
@@ -101,10 +100,10 @@ void dfs(BoggleProcessor &bp, map<tuple<int, int>, bool> prv, int y, int x, stri
     bp.add_word(w); 
   }
 
-  for (int *dy = &y_disp[0] ; dy <= &y_disp[2] ; dy++){
-    for (int *dx = &x_disp[0] ; dx <= &x_disp[2] ; dx++){
-      if (!(*dy == 0 && *dx == 0) && prv.find(tuple<int, int>(y + *dy, x + *dx)) == prv.end())
-      {
+  for (int *dy = &y_disp[0] ; dy <= &y_disp[2] ; dy++) {
+    for (int *dx = &x_disp[0] ; dx <= &x_disp[2] ; dx++) {
+      if (!(*dy == 0 && *dx == 0) && 
+          prv.find(tuple<int, int>(y + *dy, x + *dx)) == prv.end()) {
         dfs(bp, prv, y + *dy, x + *dx, w);
       }
     }
