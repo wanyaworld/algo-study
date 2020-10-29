@@ -12,7 +12,7 @@ using namespace std;
 constexpr unsigned int MAX_WORDS = 300000;
 constexpr unsigned int MAX_LEN = 8;
 constexpr unsigned int BOGGLE_W = 4;
-static const unsigned int word_to_point[MAX_LEN + 1] = {0, 0, 0, 1, 1, 2, 3, 5, 11};
+constexpr unsigned int word_to_point[MAX_LEN + 1] = {0, 0, 0, 1, 1, 2, 3, 5, 11};
 
 unsigned int n_words{}, n_boggles{};
 unordered_map<string, bool> vocab;
@@ -88,14 +88,21 @@ void get_input() {
 int y_disp[] = {-1, 0, 1};
 int x_disp[] = {-1, 0, 1};
 
-void dfs(BoggleProcessor &bp, map<tuple<int, int>, bool> prv, int y, int x, string w) { 
-  if (y < 0 || x < 0 || x >= BOGGLE_W || y >= BOGGLE_W) return;
-  if (prv.size() >= MAX_LEN) return;
-  if (vocab.size() == bp.cur_vocab.size()) return;
-  w += boggle[y][x];
+bool should_quit(BoggleProcessor &bp, map<tuple<int, int>, bool> prv, int y, int x, string w) { 
+  if (y < 0 || x < 0 || x >= BOGGLE_W || y >= BOGGLE_W) return true;
+  if (prv.size() >= MAX_LEN) return true;
+  if (vocab.size() == bp.cur_vocab.size()) return true;
   if (partial_vocab[w.size() - 1].find(w) == partial_vocab[w.size() - 1].end()) 
-    return;
+    return true;
+  return false;
+}
+void dfs(BoggleProcessor &bp, map<tuple<int, int>, bool> prv, int y, int x, string w) { 
+  w += boggle[y][x];
+
+  if (should_quit(bp, prv, y, x, w)) return;
+
   prv[tuple<int, int>(y, x)] = true;
+
   if (vocab.find(w) != vocab.end()) {
     bp.add_word(w); 
   }
