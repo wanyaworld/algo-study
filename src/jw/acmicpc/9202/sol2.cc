@@ -9,11 +9,10 @@
 
 using namespace std;
 
-enum cache_state {NOT_CACHED, CACHED, CACHED_FALSE};
 constexpr unsigned int MAX_WORDS = 300000;
 constexpr unsigned int MAX_LEN = 8;
 constexpr unsigned int BOGGLE_W = 4;
-static const unsigned int word_to_point[MAX_LEN + 1] = {0, 0, 0, 1, 1, 2, 3, 5, 11};
+constexpr unsigned int word_to_point[MAX_LEN + 1] = {0, 0, 0, 1, 1, 2, 3, 5, 11};
 
 unsigned int n_words{}, n_boggles{};
 unordered_map<string, bool> vocab;
@@ -54,6 +53,12 @@ string random_word() {
   return ret;
 }
 
+void add_to_vocab(const string& w) {
+  vocab[w] = true;
+  for (int j = 0 ; j < w.size() ; j++) {
+    (partial_vocab[j])[w.substr(0, j + 1)] = true;
+  }
+}
 void get_input() {
   string buf;
   cin >> n_words;
@@ -61,15 +66,12 @@ void get_input() {
   for (int i = 0 ; i < n_words ; i++) {
     string w;
     cin >> w;
-    vocab[w] = true;
-    for (int j = 0 ; j < w.size() ; j++) {
-      (partial_vocab[j])[w.substr(0, j + 1)] = true;
-    }
+    add_to_vocab(w);
   }
   getline(cin, buf);
   cin >> n_boggles;
 
-/* For testing */
+  /* For testing */
 #if 0
   srand(time(NULL));
   for (int i = n_words ; i < MAX_WORDS ; i++) {
@@ -77,10 +79,7 @@ void get_input() {
     /* My own word loooooool */
     if (i == 100) 
       w = (string)"ACMAAITS";
-    vocab[w] = true;
-    for (int j = 0 ; j < w.size() ; j++) {
-      (partial_vocab[j])[w.substr(0, j + 1)] = true;
-    }
+    add_to_vocab(w);
   }
   n_words = MAX_WORDS;
 #endif
@@ -89,22 +88,29 @@ void get_input() {
 int y_disp[] = {-1, 0, 1};
 int x_disp[] = {-1, 0, 1};
 
-void dfs(BoggleProcessor &bp, map<tuple<int, int>, bool> prv, int y, int x, string w) { 
-  if (y < 0 || x < 0 || x >= BOGGLE_W || y >= BOGGLE_W) return;
-  if (prv.size() >= MAX_LEN) return;
-  if (vocab.size() == bp.cur_vocab.size()) return;
-  w += boggle[y][x];
+bool should_quit(BoggleProcessor &bp, map<tuple<int, int>, bool> prv, int y, int x, string w) { 
+  if (y < 0 || x < 0 || x >= BOGGLE_W || y >= BOGGLE_W) return true;
+  if (prv.size() >= MAX_LEN) return true;
+  if (vocab.size() == bp.cur_vocab.size()) return true;
   if (partial_vocab[w.size() - 1].find(w) == partial_vocab[w.size() - 1].end()) 
-    return;
+    return true;
+  return false;
+}
+void dfs(BoggleProcessor &bp, map<tuple<int, int>, bool> prv, int y, int x, string w) { 
+  w += boggle[y][x];
+
+  if (should_quit(bp, prv, y, x, w)) return;
+
   prv[tuple<int, int>(y, x)] = true;
+
   if (vocab.find(w) != vocab.end()) {
     bp.add_word(w); 
   }
 
-  for (int *dy = &y_disp[0] ; dy <= &y_disp[2] ; dy++){
-    for (int *dx = &x_disp[0] ; dx <= &x_disp[2] ; dx++){
-      if (!(*dy == 0 && *dx == 0) && prv.find(tuple<int, int>(y + *dy, x + *dx)) == prv.end())
-      {
+  for (int *dy = &y_disp[0] ; dy <= &y_disp[2] ; dy++) {
+    for (int *dx = &x_disp[0] ; dx <= &x_disp[2] ; dx++) {
+      if (!(*dy == 0 && *dx == 0) && 
+          prv.find(tuple<int, int>(y + *dy, x + *dx)) == prv.end()) {
         dfs(bp, prv, y + *dy, x + *dx, w);
       }
     }
