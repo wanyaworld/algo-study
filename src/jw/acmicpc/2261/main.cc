@@ -23,6 +23,13 @@ struct PointCompare {
 	}
 };
 
+struct PointCompareY {
+	bool operator() (const Point &lhs, const Point &rhs) const {
+		if (lhs.y < rhs.y) return true;
+		else	return false;
+	}
+};
+
 unsigned int getDistSqr(Point a, Point b) {
 	return (b.x - a.x) * (b.x - a.x) + (b.y - a.y) * (b.y - a.y);
 }
@@ -35,16 +42,16 @@ T MIN(T a, T b) {
 
 unsigned int getLeftBoundary(unsigned int start, unsigned int end,
  														unsigned int min_dist) {
-	for (int i = end ; i >= start ; i--)
-		if ((v[end].x - v[i].x) * (v[end].x - v[i].x) >= min_dist) return i + 1;
-	return start;
+	for (int i = start ; i < end ; i++)
+		if ((v[end].x - v[i].x) * (v[end].x - v[i].x) <= min_dist) return i;
+	return end;
 }
 
 unsigned int getRightBoundary(unsigned int start, unsigned int end,
  														unsigned int min_dist) {
-	for (int i = start ; i <= end ; i++)
-		if ((v[i].x - v[start].x) * (v[i].x - v[start].x) >= min_dist) return i - 1;
-	return end;
+	for (int i = end ; i > start ; i--)
+		if ((v[i].x - v[start].x) * (v[i].x - v[start].x) <= min_dist) return i;
+	return start;
 }
 
 unsigned int dnc(unsigned int start, unsigned int end) {
@@ -68,10 +75,17 @@ unsigned int dnc(unsigned int start, unsigned int end) {
 	unsigned int left_boundary = getLeftBoundary(start, mid, min_dst);
 	unsigned int right_boundary = getRightBoundary(mid, end, min_dst);
 
-	for (int i = left_boundary ; i <= mid ; i++) {
-		for (int j = mid ; j <= right_boundary ; j++) {
-			if (i != j && 
-				getDistSqr(v[i], v[j]) < min_dst) min_dst = getDistSqr(v[i], v[j]);
+	vector<Point> cand{};
+	for (int i = left_boundary ; i <= right_boundary ; i++)
+		cand.push_back(v[i]);
+	
+	sort(cand.begin(), cand.end(), PointCompareY());
+
+	for (auto it = cand.begin() ; (it+1) != cand.end() ; it++) {
+		int cnt = 7;
+		for (auto itt = (it+1) ; itt != cand.end() ; itt++) {
+			if (getDistSqr(*it, *itt) < min_dst) min_dst = getDistSqr(*it, *itt);
+			if ((--cnt) == 0) break;
 		}
 	}
 
