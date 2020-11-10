@@ -1,6 +1,9 @@
 #include <memory>
 #include <stdio.h>
 #include <iostream>
+#include <vector>
+#include <tuple>
+#include <map>
 
 using namespace std;
 
@@ -13,14 +16,30 @@ class Solver {
 		int cheez;
 		int epoch;
 		int solve();
-		bool dfs(int depth, int y, int x);
+		bool dfs(int y, int x, vector<tuple<int ,int>> &v, map<tuple<int, int>, bool> &visited);
 		void update_sur();
 		bool can_melt(int y, int x);
 		void melt();
 };
 
-bool Solver::dfs(int depth, int y, int x) {
+bool Solver::dfs(int y, int x, vector<tuple<int ,int>> &v, map<tuple<int, int>, bool> &visited){
+	if (y < 0 || x < 0 || y >= N || x >= M) return false;
+	if (data[y][x]) return true;
+	if (y <= 0 || x <= 0 || y >= N - 1 || x >= M - 1) return false;
+	if (visited.find(tuple<int, int>(y, x)) != visited.end()) return true;
+	visited[tuple<int, int>(y, x)] = true;
+	v.push_back(tuple<int, int>(y, x));
+	
+	int y_disp[] = {-1, 0, 1};
+	int x_disp[] = {-1, 0, 1};
 
+	for (int *dy = &y_disp[0] ; dy < &y_disp[2] + 1 ; dy++) {
+		for (int *dx = &x_disp[0] ; dx < &x_disp[2] + 1 ; dx++) {
+			if (*dy + *dx != 1 && *dy + *dx != -1) continue;
+			if (dfs(y + *dy , x + *dx, v, visited) == false) return false;
+		}
+	}
+	return true;
 }
 void Solver::update_sur() {
 	for (int i = 0 ; i < N ; i++) {
@@ -32,18 +51,24 @@ void Solver::update_sur() {
 
 	for (int i = 0 ; i < N ; i++) {
 		for (int j = 0 ; j < M ; j++) {
-			dfs(0, i, j);
+			vector<tuple<int, int>> v;
+			map<tuple<int, int>, bool> visited;
+			if (dfs(i, j, v, visited)) {
+				for (auto it = v.begin() ; it != v.end() ; it++)
+					sur[get<0>(*it)][get<1>(*it)] = 1;
+			}
 		}
 	}
 }
 
 bool Solver::can_melt(int y, int x) { 
-	int y_disp[2] = {-1, 1};
-	int x_disp[2] = {-1, 1};
+	int y_disp[] = {-1, 0, 1};
+	int x_disp[] = {-1, 0, 1};
 	int cnt = 0;
 
-	for (int *dy = &y_disp[0] ; dy < &y_disp[1] + sizeof(int*) ; dy++) {
-		for (int *dx = &x_disp[0] ; dx < &x_disp[1] + sizeof(int*) ; dx++) {
+	for (int *dy = &y_disp[0] ; dy < &y_disp[2] + 1 ; dy++) {
+		for (int *dx = &x_disp[0] ; dx < &x_disp[2] + 1 ; dx++) {
+			if ( *dy + *dx != 1  && *dy + *dx != -1) continue;
 			int new_y = y + *dy;
 			int new_x = x + *dx;
 			if (new_y < 0 || new_x < 0 || new_y >= N || new_x >= M) continue;
@@ -72,6 +97,16 @@ int Solver::solve() {
 		if (cheez == 0) return epoch;
 		update_sur();
 		melt();
+		epoch++;
+		#if 0
+		for (int i = 0 ; i < N ; i++) {
+			for (int j = 0 ; j < M ; j++) {
+				printf("%d", data[i][j]);
+			}
+		printf("\n");
+		}
+		printf("\n");
+		#endif
 	}
 }
 
