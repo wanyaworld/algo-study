@@ -93,7 +93,6 @@ bool Solver::can_melt(int y, int x) {
       int new_y = y + *dy;
       int new_x = x + *dx;
       if (new_y < 0 || new_x < 0 || new_y >= N || new_x >= M) {
-        //cnt++; 
         continue;
       }
       if (!data[new_y][new_x] && !sur[new_y][new_x]) cnt++;
