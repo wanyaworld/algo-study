@@ -6,7 +6,7 @@
 
 using namespace std;
 
-#define if_debug 0
+#define if_debug 1
 
 class Solver {
   public:
@@ -18,7 +18,7 @@ class Solver {
     int epoch;
     int solve();
     bool dfs(int y, int x, map<tuple<int, int>, bool> &visited);
-    bool dfs_2(int y, int x, map<tuple<int, int>, bool> &visited);
+    bool dfs_2(int depth, int y, int x, map<tuple<int, int>, bool> &visited);
     void update_sur();
     bool can_melt(int y, int x);
     void melt();
@@ -43,8 +43,10 @@ bool Solver::dfs(int y, int x, map<tuple<int, int>, bool> &visited){
   return true;
 }
 
-bool Solver::dfs_2(int y, int x, map<tuple<int, int>, bool> &visited){
-  if (y < 0 || x < 0 || y >= N || x >= M) return false;
+bool Solver::dfs_2(int depth, int y, int x, map<tuple<int, int>, bool> &visited){
+  if (y < 0 || x < 0 || y >= N || x >= M) {
+    if (depth > 0 ) return false;
+  }
   if (data[y][x]) return true;
   if (visited.find(tuple<int, int>(y, x)) != visited.end()) return true;
   visited[tuple<int, int>(y, x)] = true;
@@ -55,7 +57,7 @@ bool Solver::dfs_2(int y, int x, map<tuple<int, int>, bool> &visited){
   for (int *dy = &y_disp[0] ; dy < &y_disp[2] + 1 ; dy++) {
     for (int *dx = &x_disp[0] ; dx < &x_disp[2] + 1 ; dx++) {
       if (*dy + *dx != 1 && *dy + *dx != -1) continue;
-      if (dfs_2(y + *dy , x + *dx, visited) == false) return false;
+      if (dfs_2(depth + 1, y + *dy , x + *dx, visited) == false) return false;
     }
   }
   return true;
@@ -90,7 +92,10 @@ bool Solver::can_melt(int y, int x) {
       if ( *dy + *dx != 1  && *dy + *dx != -1) continue;
       int new_y = y + *dy;
       int new_x = x + *dx;
-      if (new_y < 0 || new_x < 0 || new_y >= N || new_x >= M) continue;
+      if (new_y < 0 || new_x < 0 || new_y >= N || new_x >= M) {
+        //cnt++; 
+        continue;
+      }
       if (!data[new_y][new_x] && !sur[new_y][new_x]) cnt++;
     }
   }
@@ -123,7 +128,7 @@ void Solver::melt() {
         /* Temporary "un-cheese" (i, j) to make dfs work */
         data[i][j] = 0;
         map<tuple<int, int>, bool> visited;
-        dfs_2(i, j, visited);
+        dfs_2(0, i, j, visited);
         data[i][j] = 1;
         for (auto it = visited.begin() ; it != visited.end() ; it++){
           int y = get<0>(it->first);
