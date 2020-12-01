@@ -64,19 +64,19 @@ bool can_sweep(int y, int x) {
 
 void dfs(int y, int x, int dir) {
 	if (x < 0 || x >= M || y < 0 || y >=N || map[y][x] == WALL || map[y][x] == CLEANED) return;
-	if (map[y][x] == CLEANED) {
-		printf("wtf duble clean!! %d, %d\n", y, x);
-	}
 	map[y][x] = CLEANED;
 	ret++;
 	printf("%d %d\n", y, x);
+/*
 	if (!can_sweep(y, x)) {
 		if (!go_back(&y, &x, dir, 1)) return;
 		dfs(y, x, dir);
 		return;
 	}
+*/
 	
 	for (int i = 0 ; i < 4 ; i++) {
+		if (!can_sweep(y, x)) {  goto back; }
 		int new_y, new_x;
 		if (get_left(y, x, dir, &new_y, &new_x)) {
 			turn_left(&y, &x, &dir);
@@ -86,6 +86,11 @@ void dfs(int y, int x, int dir) {
 			go_back(&y, &x, dir, 1);
 		}
 	}
+	return;
+
+back:
+		if (!go_back(&y, &x, dir, 1)) return;
+		dfs(y, x, dir);
 }
 int main() {
 	int y, x, dir;
