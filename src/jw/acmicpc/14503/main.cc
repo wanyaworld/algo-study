@@ -6,7 +6,7 @@ int N, M, ret{};
 tile map[51][51];
 
 
-bool go_back(int *y, int *x, int dir, int backward) { 
+bool go(int *y, int *x, int dir, int backward) { 
 	int new_y = *y, new_x = *x;
 	switch (dir) {
 		case 0:
@@ -34,7 +34,14 @@ bool go_back(int *y, int *x, int dir, int backward) {
 	*x = new_x;
 	return true;
 }
-	
+bool go_back(int *y, int *x, int dir) { 
+  return go(y, x, dir, 1);
+}
+
+bool go_forward(int *y, int *x, int dir) { 
+  return go(y, x, dir, -1);
+}
+
 void turn_left(int *y, int *x, int *dir) {
 	(*dir)--;
 	if (*dir < 0) *dir = 3;
@@ -45,7 +52,7 @@ bool get_left(int y, int x, int dir, int *new_y, int *new_x){
 	*new_x = x;
 	int new_dir = dir;
 	turn_left(new_y, new_x, &new_dir);
-	bool rett = go_back(new_y, new_x, new_dir, -1);
+	bool rett = go_forward(new_y, new_x, new_dir);
 	if (!rett) return false;
 	return true;
 }
@@ -81,15 +88,15 @@ void dfs(int y, int x, int dir) {
 		if (get_left(y, x, dir, &new_y, &new_x)) {
 			turn_left(&y, &x, &dir);
 			if (map[new_y][new_x] == CLEANED) continue;
-			go_back(&y, &x, dir, -1);
+			go_forward(&y, &x, dir);
 			dfs(y, x, dir);
-			go_back(&y, &x, dir, 1);
+			go_back(&y, &x, dir);
 		}
 	}
 	return;
 
 back:
-		if (!go_back(&y, &x, dir, 1)) return;
+		if (!go_back(&y, &x, dir)) return;
 		dfs(y, x, dir);
 }
 int main() {
