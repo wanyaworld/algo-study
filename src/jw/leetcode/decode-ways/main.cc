@@ -33,11 +33,12 @@ class Solution {
 			}
 			if (cache.find(idx) != cache.end()) return cache[idx];	
 			unsigned long long int ret{};
-			ret += dfs(idx + 1);
+			if (str[idx] != '0')
+				ret += dfs(idx + 1);
 			string tmp = str.substr(idx, 2);
-			if (getStringsStartWith(tmp).size() >= 1) {
+			if (getStringsStartWith(tmp).size() >= 1 && str[idx + 2] != '0') {
 				unsigned long long int sub = dfs(idx + 2);
-				if (sub == 0) sub = 1;
+				if (sub == 0 && idx == N - 2) sub = 1;
 				ret += sub;
 			}
 			cache[idx] = ret;
