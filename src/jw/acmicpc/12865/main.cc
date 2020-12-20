@@ -21,8 +21,8 @@ unsigned int solve(unsigned int idx, unsigned int rem) {
   key = rem;
   key = key << (sizeof(unsigned int) * 8);
   key += idx;
-  printf("%d\n", idx);
-  if (cache.find(key) != cache.end()) return cache[key];
+  if (cache.find(key) != cache.end()) {
+		printf("%d %d\n", idx, rem); return cache[key]; }
 
   unsigned int ret, ret1, ret2, cur;
   if (idx >= n || rem < 0) {
@@ -50,8 +50,8 @@ int main() {
     value.push_back(tmp);
   }
 #if if_random
-  n = 5;
-  w = 100000;
+  n = 100;
+  w = 1000000;
   weight.empty();
   for (int i = 0 ; i < n ; i++)
     weight.push_back(1);
@@ -59,3 +59,4 @@ int main() {
   printf("%d\n", solve(0, w));
   return 0;
 }
+
