@@ -1,10 +1,17 @@
 class Solution {
 public:
+    unordered_map<long long int, int> cache{};
     int combination(int n, int r) {
 	    if(n==r || r==0){
 		    return 1;
 	    }
-	    return combination(n-1,r-1) + combination(n-1, r);
+        long long int key = n;
+        key = key << 32;
+        key += r;
+        if (cache.find(key) != cache.end()) return cache[key];
+        long long int ret = (combination(n-1,r-1) + combination(n-1, r)) % 1000000007;
+        cache[key] = (int)ret;
+        return (int)ret;
     }
     int dupCombination(int a, int b) {
         return combination(a + b - 1, b);
@@ -37,6 +44,7 @@ public:
             if (s[j + 1] == '1') break;
             cnt2++;
         }
-        return (cnt1 + 1) * (cnt2 + 1);
+        int ret = (cnt1 + 1) % 1000000007;
+        return (unsigned long long int)ret * (cnt2 + 1) % 1000000007;
     }
 };
